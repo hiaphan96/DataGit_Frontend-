@@ -5,17 +5,19 @@ import Terminal from '../terminal/Terminal';
 import Home from '../../pages/Home';
 import Datasets from '../../pages/Datasets';
 import Versions from '../../pages/Versions';
+import DatasetPreparation from '../../pages/DatasetPreparation';
 import { useDashboardData } from '../../hooks/useDashboardData';
 
-const PLACEHOLDER_LABELS: Record<Exclude<NavSection, 'home'>, string> = {
-  projects: 'PROJECTS',
-  datasets: 'DATASETS',
-  versions: 'VERSIONS',
-  compare: 'COMPARE',
+const PLACEHOLDER_LABELS: Record<Exclude<NavSection, 'home' | 'datasets' | 'versions' | 'dataset-preparation'>, string> = {
   experiments: 'EXPERIMENTS',
-  investigate: 'INVESTIGATE',
-  history: 'HISTORY',
+  evaluation: 'EVALUATION',
+  baselines: 'BASELINES',
+  reports: 'REPORTS',
+  compare: 'COMPARE',
+  copilot: 'COPILOT',
+  lineage: 'LINEAGE',
   settings: 'SETTINGS',
+  upgrade: 'UPGRADE',
 };
 
 export function AppShell() {
@@ -34,6 +36,8 @@ export function AppShell() {
             <Datasets />
           ) : activeSection === 'versions' ? (
             <Versions />
+          ) : activeSection === 'dataset-preparation' ? (
+            <DatasetPreparation />
           ) : (
             <ModulePlaceholder label={PLACEHOLDER_LABELS[activeSection]} />
           )}

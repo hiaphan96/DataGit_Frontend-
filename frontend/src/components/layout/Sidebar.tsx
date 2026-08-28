@@ -1,29 +1,61 @@
 export type NavSection =
   | 'home'
-  | 'projects'
   | 'datasets'
   | 'versions'
-  | 'compare'
+  | 'dataset-preparation'
   | 'experiments'
-  | 'investigate'
-  | 'history'
-  | 'settings';
+  | 'evaluation'
+  | 'baselines'
+  | 'reports'
+  | 'compare'
+  | 'copilot'
+  | 'lineage'
+  | 'settings'
+  | 'upgrade';
 
-interface NavItem {
+interface NavLeaf {
   id: NavSection;
   label: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { id: 'home', label: 'HOME' },
-  { id: 'projects', label: 'PROJECTS' },
-  { id: 'datasets', label: 'DATASETS' },
-  { id: 'versions', label: 'VERSIONS' },
-  { id: 'compare', label: 'COMPARE' },
-  { id: 'experiments', label: 'EXPERIMENTS' },
-  { id: 'investigate', label: 'INVESTIGATE' },
-  { id: 'history', label: 'HISTORY' },
-  { id: 'settings', label: 'SETTINGS' },
+interface NavGroup {
+  label: string;
+  items: NavLeaf[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: 'DATA',
+    items: [
+      { id: 'datasets', label: 'DATASETS' },
+      { id: 'versions', label: 'VERSIONS' },
+      { id: 'dataset-preparation', label: 'DATASET PREPARATION' },
+    ],
+  },
+  {
+    label: 'EXPERIMENTS',
+    items: [
+      { id: 'experiments', label: 'EXPERIMENTS' },
+      { id: 'evaluation', label: 'EVALUATION' },
+      { id: 'baselines', label: 'BASELINES' },
+    ],
+  },
+  {
+    label: 'AI & INSIGHTS',
+    items: [
+      { id: 'reports', label: 'REPORTS' },
+      { id: 'compare', label: 'COMPARE' },
+      { id: 'copilot', label: 'COPILOT' },
+      { id: 'lineage', label: 'LINEAGE' },
+    ],
+  },
+  {
+    label: 'SYSTEM',
+    items: [
+      { id: 'settings', label: 'SETTINGS' },
+      { id: 'upgrade', label: 'UPGRADE' },
+    ],
+  },
 ];
 
 interface SidebarProps {
@@ -34,20 +66,41 @@ interface SidebarProps {
 export function Sidebar({ active, onSelect }: SidebarProps) {
   return (
     <nav className="sidebar" aria-label="Primary">
-      <ul className="sidebar__list">
-        {NAV_ITEMS.map((item) => (
-          <li key={item.id}>
+      <div className="sidebar__nav">
+        <ul className="sidebar__list">
+          <li>
             <button
               type="button"
-              className={`sidebar__item ${active === item.id ? 'sidebar__item--active' : ''}`}
-              onClick={() => onSelect(item.id)}
+              className={`sidebar__item ${active === 'home' ? 'sidebar__item--active' : ''}`}
+              onClick={() => onSelect('home')}
             >
               <span className="sidebar__caret">&gt;</span>
-              {item.label}
+              HOME
             </button>
           </li>
+        </ul>
+
+        {NAV_GROUPS.map((group) => (
+          <div className="sidebar__group" key={group.label}>
+            <p className="sidebar__group-label">{group.label}</p>
+            <ul className="sidebar__list">
+              {group.items.map((item) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    className={`sidebar__item ${active === item.id ? 'sidebar__item--active' : ''}`}
+                    onClick={() => onSelect(item.id)}
+                  >
+                    <span className="sidebar__caret">&gt;</span>
+                    {item.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
-      </ul>
+      </div>
+
       <div className="sidebar__footer">
         <div className="sidebar__footer-rule" />
         <p>USER : guest</p>

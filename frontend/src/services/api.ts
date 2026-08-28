@@ -6,12 +6,27 @@ import { demoVersions } from '../data/demoVersions';
 import { demoExperiments } from '../data/demoExperiments';
 import { demoDatasetColumns } from '../data/demoDatasetColumns';
 import { demoVersionDetails, demoChangeSummaries, demoComparisonResults } from '../data/demoVersionDetails';
+import {
+  demoCleaningSteps,
+  demoDataPreview,
+  demoBeforeAfterMetrics,
+  demoWarnings,
+  demoAiSuggestion,
+} from '../data/demoPreprocessing';
 import type { Project } from '../types/project';
 import type { DatasetSummary, DatasetFileKind, DatasetUploadForm } from '../types/dataset';
 import type { ActivityItem, MetricsSummary } from '../types/dashboard';
 import type { VersionEntry, VersionDetail, VersionChangeSummary, VersionComparisonResult } from '../types/version';
 import type { ExperimentEntry } from '../types/experiment';
 import type { ValidationCheckResult } from '../types/validation';
+import type {
+  CleaningStepConfig,
+  BeforeAfterMetric,
+  DataWarning,
+  AiSuggestion,
+  DataPreview,
+  ProcessedDataSample,
+} from '../types/preprocessing';
 
 export interface DatasetFileInspection {
   rows: number;
@@ -32,11 +47,11 @@ function delay(ms: number) {
  * Data-access facade for the DATAGIT frontend.
  *
  * Every function here currently resolves mock data instantly (or with a
- * short simulated delay for Stage 2's upload/validation flow and Stage
- * 3's comparison flow). Nothing else in the app should import from
- * `src/data/` directly — swap the bodies of these functions for real
- * fetch() calls to the FastAPI backend later, and no UI component or
- * hook needs to change.
+ * short simulated delay for Stage 2's upload/validation flow, Stage 3's
+ * comparison flow, and Stage 4's preprocessing flow). Nothing else in
+ * the app should import from `src/data/` directly — swap the bodies of
+ * these functions for real fetch() calls to the FastAPI backend later,
+ * and no UI component or hook needs to change.
  */
 export const api = {
   getProject(): Promise<Project> {
@@ -180,5 +195,71 @@ export const api = {
       createdAt: 'just now',
       isCurrent: true,
     };
+  },
+
+  // --- Stage 4: dataset preparation / preprocessing (mock) ---
+
+  async getPreprocessingConfig(): Promise<CleaningStepConfig[]> {
+    await delay(200);
+    return demoCleaningSteps.map((step) => ({ ...step }));
+  },
+
+  async updateCleaningStep(
+    _stepId: CleaningStepConfig['id'],
+    _patch: Partial<Pick<CleaningStepConfig, 'enabled' | 'selectValue'>>,
+  ): Promise<{ success: boolean }> {
+    await delay(100);
+    return { success: true };
+  },
+
+  async getDataPreview(): Promise<DataPreview> {
+    await delay(250);
+    return demoDataPreview;
+  },
+
+  async getBeforeAfterSummary(): Promise<BeforeAfterMetric[]> {
+    await delay(300);
+    return demoBeforeAfterMetrics;
+  },
+
+  async getWarnings(): Promise<DataWarning[]> {
+    await delay(200);
+    return demoWarnings;
+  },
+
+  async getAiSuggestion(): Promise<AiSuggestion> {
+    await delay(200);
+    return demoAiSuggestion;
+  },
+
+  async previewProcessedData(): Promise<ProcessedDataSample> {
+    await delay(600);
+    return {
+      columns: demoDataPreview.columns,
+      rows: demoDataPreview.rows.map((row) => ({
+        ...row,
+        review_text: String(row.review_text).toLowerCase().trim(),
+      })),
+    };
+  },
+
+  async createVersionFromPreprocessing(): Promise<VersionDetail> {
+    await delay(700);
+    const latest = demoVersionDetails[demoVersionDetails.length - 1];
+    const nextNumber = demoVersionDetails.length + 1;
+    return {
+      ...latest,
+      id: `v-mock-${Date.now()}`,
+      version: `V0${nextNumber}`,
+      parentVersionId: latest.id,
+      checkpointId: `DG-CHK-00${nextNumber}`,
+      createdAt: 'just now',
+      isCurrent: true,
+    };
+  },
+
+  getNextVersionLabel(): string {
+    const nextNumber = demoVersionDetails.length + 1;
+    return `V0${nextNumber}`;
   },
 };
