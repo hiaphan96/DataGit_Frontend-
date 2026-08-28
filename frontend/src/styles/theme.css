@@ -1,0 +1,49 @@
+:root {
+  --color-bg-app: #060706;
+  --color-bg-panel: #0c0f0d;
+  --color-border: #232824;
+  --color-border-strong: #34392f;
+  --color-text-primary: #e7ece6;
+  --color-text-secondary: #8b9088;
+  --color-text-dim: #565b53;
+  --color-accent: #4ee08a;
+  --color-accent-dim: #2c8f5b;
+  --color-warning: #d9b35c;
+  --color-negative: #d9695c;
+
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Consolas,
+    monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+}
+
+/* ---------- Global scrollbar (dark theme) ---------- */
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) var(--color-bg-app);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--color-bg-app);
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-bg-app);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-accent-dim);
+}
+
+*::-webkit-scrollbar-corner {
+  background: var(--color-bg-app);
+}
