@@ -1,0 +1,252 @@
+/* ---------- Experiments page layout ---------- */
+
+.experiments-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.experiments-page__breadcrumb {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+}
+
+.experiments-page__title {
+  margin: 0 0 0.4rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.experiments-page__subtitle {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+}
+
+/* ---------- Summary grid ---------- */
+
+.experiment-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.metric-panel__value--accent {
+  color: var(--color-accent);
+}
+
+/* ---------- Experiment table rows ---------- */
+
+.experiment-table__row {
+  cursor: pointer;
+}
+
+.experiment-table__row:hover {
+  background: var(--color-bg-panel);
+}
+
+.experiment-table__id {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* ---------- Running experiment panel ---------- */
+
+.running-experiment {
+  border: 1px solid var(--color-accent-dim);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-panel);
+  padding: 1rem 1.25rem;
+  margin-top: 1.75rem;
+}
+
+.running-experiment__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.running-experiment__title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.running-experiment__id {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.running-experiment__desc {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.running-experiment__progress-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.running-experiment__progress-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-border-strong);
+  overflow: hidden;
+}
+
+.running-experiment__progress-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.running-experiment__progress-label {
+  font-size: 0.78rem;
+  color: var(--color-text-primary);
+  min-width: 2.5rem;
+}
+
+.running-experiment__eta {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+}
+
+/* ---------- Modal (shared: New Experiment + Experiment Details) ---------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 7, 6, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1.5rem;
+}
+
+.modal {
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+
+.modal__title {
+  margin: 0 0 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.modal__field {
+  margin-bottom: 1.1rem;
+}
+
+.modal__field .section-label {
+  margin-bottom: 0.4rem;
+  font-size: 0.68rem;
+}
+
+.modal__param-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.modal__param {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.modal__param-label {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.05em;
+}
+
+.modal__error {
+  margin: 0 0 1rem;
+  font-size: 0.78rem;
+  color: var(--color-negative);
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1.1rem;
+  border-top: 1px dashed var(--color-border);
+}
+
+/* ---------- Experiment details rows ---------- */
+
+.experiment-details__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--color-border);
+  font-size: 0.8rem;
+}
+
+.experiment-details__row:last-of-type {
+  border-bottom: none;
+}
+
+.experiment-details__label {
+  color: var(--color-text-dim);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.experiment-details__value {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.experiment-details__subheading {
+  margin: 1.1rem 0 0.4rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+}
+
+.experiment-details__empty {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .experiment-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .experiment-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal__param-grid {
+    grid-template-columns: 1fr;
+  }
+}

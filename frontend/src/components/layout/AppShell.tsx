@@ -6,10 +6,10 @@ import Home from '../../pages/Home';
 import Datasets from '../../pages/Datasets';
 import Versions from '../../pages/Versions';
 import DatasetPreparation from '../../pages/DatasetPreparation';
+import Experiments from '../../pages/Experiments';
 import { useDashboardData } from '../../hooks/useDashboardData';
 
-const PLACEHOLDER_LABELS: Record<Exclude<NavSection, 'home' | 'datasets' | 'versions' | 'dataset-preparation'>, string> = {
-  experiments: 'EXPERIMENTS',
+const PLACEHOLDER_LABELS: Record<Exclude<NavSection, 'home' | 'datasets' | 'versions' | 'dataset-preparation' | 'experiments'>, string> = {
   evaluation: 'EVALUATION',
   baselines: 'BASELINES',
   reports: 'REPORTS',
@@ -38,6 +38,8 @@ export function AppShell() {
             <Versions />
           ) : activeSection === 'dataset-preparation' ? (
             <DatasetPreparation />
+          ) : activeSection === 'experiments' ? (
+            <Experiments />
           ) : (
             <ModulePlaceholder label={PLACEHOLDER_LABELS[activeSection]} />
           )}

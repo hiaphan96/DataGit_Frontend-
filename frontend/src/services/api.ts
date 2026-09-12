@@ -13,6 +13,7 @@ import {
   demoWarnings,
   demoAiSuggestion,
 } from '../data/demoPreprocessing';
+import { demoExperimentRuns } from '../data/demoExperimentRuns';
 import type { Project } from '../types/project';
 import type { DatasetSummary, DatasetFileKind, DatasetUploadForm } from '../types/dataset';
 import type { ActivityItem, MetricsSummary } from '../types/dashboard';
@@ -27,6 +28,7 @@ import type {
   DataPreview,
   ProcessedDataSample,
 } from '../types/preprocessing';
+import type { ExperimentRun, NewExperimentFormValues } from '../types/experimentRun';
 
 export interface DatasetFileInspection {
   rows: number;
@@ -48,10 +50,10 @@ function delay(ms: number) {
  *
  * Every function here currently resolves mock data instantly (or with a
  * short simulated delay for Stage 2's upload/validation flow, Stage 3's
- * comparison flow, and Stage 4's preprocessing flow). Nothing else in
- * the app should import from `src/data/` directly — swap the bodies of
- * these functions for real fetch() calls to the FastAPI backend later,
- * and no UI component or hook needs to change.
+ * comparison flow, Stage 4's preprocessing flow, and Stage 5's experiment
+ * runs). Nothing else in the app should import from `src/data/` directly —
+ * swap the bodies of these functions for real fetch() calls to the
+ * FastAPI backend later, and no UI component or hook needs to change.
  */
 export const api = {
   getProject(): Promise<Project> {
@@ -261,5 +263,29 @@ export const api = {
   getNextVersionLabel(): string {
     const nextNumber = demoVersionDetails.length + 1;
     return `V0${nextNumber}`;
+  },
+
+  // --- Stage 5: experiments / ML runs (mock) ---
+
+  async getExperimentRuns(): Promise<ExperimentRun[]> {
+    await delay(200);
+    return demoExperimentRuns;
+  },
+
+  async createExperimentRun(values: NewExperimentFormValues): Promise<ExperimentRun> {
+    await delay(400);
+    const id = `EXP-${String(demoExperimentRuns.length + 4).padStart(3, '0')}`;
+    return {
+      id,
+      datasetName: values.datasetName,
+      datasetVersion: values.datasetVersion,
+      model: values.model,
+      parameters: values.parameters,
+      metrics: { accuracy: null, precision: null, recall: null, f1Score: null },
+      status: 'running',
+      createdAt: 'just now',
+      progress: 0,
+      eta: 'calculating...',
+    };
   },
 };

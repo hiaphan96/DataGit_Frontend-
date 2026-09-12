@@ -4,6 +4,7 @@ import './App.css';
 import './styles/dataset.css';
 import './styles/version.css';
 import './styles/preprocessing.css';
+import './styles/experiments.css';
 
 function App() {
   return <AppShell />;
