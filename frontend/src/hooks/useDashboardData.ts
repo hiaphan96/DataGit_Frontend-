@@ -22,16 +22,28 @@ export function useDashboardData(): DashboardData {
   useEffect(() => {
     let cancelled = false;
 
-    Promise.all([api.getProject(), api.getDatasets(), api.getMetrics(), api.getActivity()]).then(
-      ([projectRes, datasetsRes, metricsRes, activityRes]) => {
-        if (cancelled) return;
-        setProject(projectRes);
-        setDatasets(datasetsRes);
-        setMetrics(metricsRes);
-        setActivity(activityRes);
-        setIsLoading(false);
-      },
-    );
+Promise.all([
+  api.getProject(),
+  api.getDatasets(),
+  api.getMetrics(),
+  api.getActivity(),
+])
+  .then(([projectRes, datasetsRes, metricsRes, activityRes]) => {
+    if (cancelled) return;
+
+    setProject(projectRes);
+    setDatasets(datasetsRes);
+    setMetrics(metricsRes);
+    setActivity(activityRes);
+  })
+  .catch((error) => {
+    console.error('Failed to load dashboard data:', error);
+  })
+  .finally(() => {
+    if (!cancelled) {
+      setIsLoading(false);
+    }
+  });
 
     return () => {
       cancelled = true;

@@ -4,7 +4,7 @@ interface TabItem<T extends string> {
 }
 
 interface TabsProps<T extends string> {
-  tabs: TabItem<T>[];
+  tabs: readonly TabItem<T>[];
   active: T;
   onSelect: (id: T) => void;
 }

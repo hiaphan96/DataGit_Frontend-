@@ -1,4 +1,3 @@
-import { demoProject } from '../data/demoProject';
 import { demoDatasets } from '../data/demoDatasets';
 import { demoActivity } from '../data/demoActivity';
 import { demoMetrics } from '../data/demoMetrics';
@@ -6,6 +5,7 @@ import { demoVersions } from '../data/demoVersions';
 import { demoExperiments } from '../data/demoExperiments';
 import { demoDatasetColumns } from '../data/demoDatasetColumns';
 import { demoVersionDetails, demoChangeSummaries, demoComparisonResults } from '../data/demoVersionDetails';
+import { demoEvaluationData, EVALUABLE_EXPERIMENT_IDS } from '../data/demoEvaluation';
 import {
   demoCleaningSteps,
   demoDataPreview,
@@ -13,13 +13,13 @@ import {
   demoWarnings,
   demoAiSuggestion,
 } from '../data/demoPreprocessing';
-import { demoExperimentRuns } from '../data/demoExperimentRuns';
 import type { Project } from '../types/project';
 import type { DatasetSummary, DatasetFileKind, DatasetUploadForm } from '../types/dataset';
 import type { ActivityItem, MetricsSummary } from '../types/dashboard';
 import type { VersionEntry, VersionDetail, VersionChangeSummary, VersionComparisonResult } from '../types/version';
 import type { ExperimentEntry } from '../types/experiment';
 import type { ValidationCheckResult } from '../types/validation';
+import type { EvaluationData } from '../types/evaluation';
 import type {
   CleaningStepConfig,
   BeforeAfterMetric,
@@ -28,7 +28,7 @@ import type {
   DataPreview,
   ProcessedDataSample,
 } from '../types/preprocessing';
-import type { ExperimentRun, NewExperimentFormValues } from '../types/experimentRun';
+import type { ExperimentRun, NewExperimentFormValues, ExperimentParameters} from '../types/experimentRun';
 
 export interface DatasetFileInspection {
   rows: number;
@@ -55,10 +55,35 @@ function delay(ms: number) {
  * swap the bodies of these functions for real fetch() calls to the
  * FastAPI backend later, and no UI component or hook needs to change.
  */
+
 export const api = {
-  getProject(): Promise<Project> {
-    return Promise.resolve(demoProject);
-  },
+async getProject(): Promise<Project> {
+  const response = await fetch(`${BASE_URL}/projects`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch projects');
+  }
+
+  const projects = await response.json();
+
+  if (!projects || projects.length === 0) {
+    throw new Error('No projects found');
+  }
+
+  const project = projects[0];
+
+  // Convert FastAPI response to the format expected by React
+  return {
+    id: String(project.id),
+    name: project.name,
+    status: 'active',
+
+    // Temporary values until backend provides these APIs
+    baselineVersion: 'V01',
+    baselineExperiment: 'EXP-001',
+    lastRunLabel: 'No runs yet',
+  };
+},
   getDatasets(): Promise<DatasetSummary[]> {
     return Promise.resolve(demoDatasets);
   },
@@ -267,25 +292,173 @@ export const api = {
 
   // --- Stage 5: experiments / ML runs (mock) ---
 
-  async getExperimentRuns(): Promise<ExperimentRun[]> {
-    await delay(200);
-    return demoExperimentRuns;
+async getExperimentRuns(): Promise<ExperimentRun[]> {
+  const response = await fetchProjectRuns(2);
+
+  if (!response || response.length === 0) {
+    return [];
+  }
+
+  return response.map((run: any) => ({
+    id: `EXP-${String(run.id).padStart(3, '0')}`,
+
+    datasetName: 'Project Dataset',
+
+    datasetVersion: 'V01',
+
+    model: run.model_name,
+
+    parameters: run.parameters,
+
+    metrics: {
+      accuracy: run.metrics?.accuracy ?? null,
+      precision: run.metrics?.precision ?? null,
+      recall: run.metrics?.recall ?? null,
+      f1Score: run.metrics?.f1_score ?? null,
+    },
+
+    status: 'completed',
+
+    createdAt: new Date(run.created_at).toLocaleString(),
+
+    progress: 100,
+
+    eta: 'Completed',
+  }));
+},
+
+async createExperimentRun(
+  values: NewExperimentFormValues
+): Promise<ExperimentRun> {
+
+  const run = await createProjectRun(2, {
+    model_name: values.model,
+
+    // Temporary mapping
+    features: [values.datasetName],
+
+    parameters: values.parameters,
+
+    // Backend requires metrics
+    metrics: 
+  {
+  accuracy: 0.92,
+  precision: 0.91,
+  recall: 0.90,
+  f1_score: 0.905,
+  },
+  });
+
+  return {
+    id: `EXP-${String(run.id).padStart(3, '0')}`,
+
+    datasetName: values.datasetName,
+
+    datasetVersion: values.datasetVersion,
+
+    model: run.model_name,
+
+    parameters: run.parameters,
+
+    metrics: {
+      accuracy: run.metrics?.accuracy ?? null,
+      precision: run.metrics?.precision ?? null,
+      recall: run.metrics?.recall ?? null,
+      f1Score: run.metrics?.f1_score ?? null,
+    },
+
+    status: 'completed',
+
+    createdAt: new Date(run.created_at).toLocaleString(),
+
+    progress: 100,
+
+    eta: 'completed',
+  };
+},
+
+    // --- Stage 6: model evaluation (mock) ---
+
+  async getEvaluableExperimentIds(): Promise<string[]> {
+    await delay(150);
+    return EVALUABLE_EXPERIMENT_IDS;
   },
 
-  async createExperimentRun(values: NewExperimentFormValues): Promise<ExperimentRun> {
-    await delay(400);
-    const id = `EXP-${String(demoExperimentRuns.length + 4).padStart(3, '0')}`;
-    return {
-      id,
-      datasetName: values.datasetName,
-      datasetVersion: values.datasetVersion,
-      model: values.model,
-      parameters: values.parameters,
-      metrics: { accuracy: null, precision: null, recall: null, f1Score: null },
-      status: 'running',
-      createdAt: 'just now',
-      progress: 0,
-      eta: 'calculating...',
-    };
+  async getEvaluationData(experimentId: string): Promise<EvaluationData> {
+    await delay(300);
+    const data = demoEvaluationData[experimentId];
+    if (!data) {
+      throw new Error(`no evaluation data for ${experimentId}`);
+    }
+    return data;
   },
 };
+
+
+//<-------------------------------------<api>---------------------------------->
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+
+// Server Health Check
+export async function fetchHealth() {
+  const res = await fetch(`${BASE_URL}/health`);
+  if (!res.ok) throw new Error('Backend server is offline');
+  return res.json();
+}
+
+// Projects
+export async function fetchProjects() {
+  const res = await fetch(`${BASE_URL}/projects`);
+  if (!res.ok) throw new Error('Failed to fetch projects');
+  return res.json();
+}
+
+// Project ML Runs
+export async function fetchProjectRuns(projectId: number) {
+  const res = await fetch(`${BASE_URL}/projects/${projectId}/runs`);
+  if (!res.ok) throw new Error('Failed to fetch project runs');
+  return res.json();
+}
+
+// Create ML Run
+export async function createProjectRun(
+  projectId: number,
+  data: {
+    model_name: string;
+    features: string[];
+    parameters: ExperimentParameters;
+    metrics: Record<string, unknown>;
+  }
+) {
+  const res = await fetch(`${BASE_URL}/projects/${projectId}/runs`, {
+    method: 'POST',
+
+    headers: {
+      'Content-Type': 'application/json',
+      'accept': 'application/json',
+    },
+
+    body: JSON.stringify({
+      project_id: projectId,
+      ...data,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to create ML run');
+  }
+
+  return res.json();
+}
+
+// Compare Experiments (Core Evidence Endpoint)
+export async function fetchRunComparison(projectId: number, run1Id: number, run2Id: number) {
+  const res = await fetch(
+    `${BASE_URL}/projects/${projectId}/runs/compare?run_1=${run1Id}&run_2=${run2Id}`
+  );
+  if (!res.ok) throw new Error('Failed to compute run comparison');
+  return res.json();
+}
+
+export function formatMetric(value: number | null): string {
+  return value == null ? '—' : value.toFixed(3);
+}
