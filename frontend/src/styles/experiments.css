@@ -250,3 +250,36 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   EXPERIMENT DELETE BUTTON
+   ========================================================= */
+
+.experiment-table__delete {
+  background: transparent;
+  border: 1px solid rgba(255, 90, 90, 0.45);
+  color: #ff6b6b;
+
+  padding: 6px 12px;
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.experiment-table__delete:hover {
+  background: rgba(255, 90, 90, 0.1);
+  border-color: #ff6b6b;
+  color: #ff8585;
+}
+
+.experiment-table__delete:active {
+  transform: scale(0.96);
+}

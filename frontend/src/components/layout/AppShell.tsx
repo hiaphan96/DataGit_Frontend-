@@ -8,10 +8,10 @@ import Versions from '../../pages/Versions';
 import DatasetPreparation from '../../pages/DatasetPreparation';
 import Experiments from '../../pages/Experiments';
 import Evaluation from '../../pages/Evaluation';
+import Baselines from '../../pages/Baselines';
 import { useDashboardData } from '../../hooks/useDashboardData';
 
-const PLACEHOLDER_LABELS: Record<Exclude<NavSection, 'home' | 'datasets' | 'versions' | 'dataset-preparation' | 'experiments' | 'evaluation'>, string> = {
-  baselines: 'BASELINES',
+const PLACEHOLDER_LABELS: Record<Exclude<NavSection, 'home' | 'datasets' | 'versions' | 'dataset-preparation' | 'experiments' | 'evaluation' | 'baselines'>, string> = {
   reports: 'REPORTS',
   compare: 'COMPARE',
   copilot: 'COPILOT',
@@ -42,6 +42,8 @@ export function AppShell() {
             <Experiments />
           ) : activeSection === 'evaluation' ? (
             <Evaluation />
+          ) : activeSection === 'baselines' ? (
+            <Baselines />
           ) : (
             <ModulePlaceholder label={PLACEHOLDER_LABELS[activeSection]} />
           )}

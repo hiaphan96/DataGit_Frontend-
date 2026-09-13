@@ -34,10 +34,9 @@ class DVCService:
     # ============================================================
     # CHECK DVC REPOSITORY
     # ============================================================
-
     @staticmethod
     def is_dvc_repository(
-        project_path: str,
+    project_path: str,
     ) -> bool:
 
         path = Path(project_path)
@@ -45,14 +44,8 @@ class DVCService:
         if not path.exists() or not path.is_dir():
             return False
 
-        result = subprocess.run(
-            ["dvc", "root"],
-            cwd=str(path),
-            capture_output=True,
-            text=True,
-        )
-
-        return result.returncode == 0
+    # Simple check: does the project contain a .dvc folder?
+        return (path / ".dvc").exists()
 
     # ============================================================
     # DVC STATUS
@@ -176,31 +169,30 @@ class DVCService:
     # COMPLETE DVC STATE
     # ============================================================
 
+
     @staticmethod
     def get_state(
         project_path: str,
     ) -> dict:
 
+        is_repository = DVCService.is_dvc_repository(
+            project_path
+        )
+
+        # If DVC is not initialized, don't run DVC commands
+        if not is_repository:
+            return {
+                "is_repository": False,
+                "status": "DVC not initialized",
+                "diff": "No DVC data available",
+                "tracked_files": [],
+            }
+
         return {
-            "is_repository":
-                DVCService.is_dvc_repository(
-                    project_path
-                ),
-
-            "status":
-                DVCService.get_status(
-                    project_path
-                ),
-
-            "diff":
-                DVCService.get_diff(
-                    project_path
-                ),
-
-            "tracked_files":
-                DVCService.get_tracked_files(
-                    project_path
-                ),
+            "is_repository": True,
+            "status": DVCService.get_status(project_path),
+            "diff": DVCService.get_diff(project_path),
+            "tracked_files": DVCService.get_tracked_files(project_path),
         }
 
     # ============================================================

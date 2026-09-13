@@ -8,19 +8,20 @@ import { useExperiments } from '../hooks/useExperiments';
 
 export function Experiments() {
   const {
-    experiments,
-    datasets,
-    loading,
-    statusMessage,
-    runningExperiment,
-    selectedExperiment,
-    showNewModal,
-    openNewExperimentModal,
-    closeNewExperimentModal,
-    selectExperiment,
-    closeDetails,
-    createExperiment,
-  } = useExperiments();
+  experiments,
+  datasets,
+  loading,
+  statusMessage,
+  runningExperiment,
+  selectedExperiment,
+  showNewModal,
+  openNewExperimentModal,
+  closeNewExperimentModal,
+  selectExperiment,
+  closeDetails,
+  createExperiment,
+  deleteExperiment,
+} = useExperiments();
 
   if (loading) {
     return <p className="home__loading">{statusMessage}</p>;
@@ -41,7 +42,11 @@ export function Experiments() {
 
       <ExperimentSummary experiments={experiments} />
 
-      <ExperimentTable experiments={experiments} onSelect={selectExperiment} />
+      <ExperimentTable
+        experiments={experiments}
+        onSelect={selectExperiment}
+        onDelete={deleteExperiment}
+      />
 
       {runningExperiment ? (
         <RunningExperimentPanel experiment={runningExperiment} onViewDetails={selectExperiment} />

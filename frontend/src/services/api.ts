@@ -5,7 +5,7 @@ import { demoVersions } from '../data/demoVersions';
 import { demoExperiments } from '../data/demoExperiments';
 import { demoDatasetColumns } from '../data/demoDatasetColumns';
 import { demoVersionDetails, demoChangeSummaries, demoComparisonResults } from '../data/demoVersionDetails';
-import { demoEvaluationData, EVALUABLE_EXPERIMENT_IDS } from '../data/demoEvaluation';
+import { demoBaselines } from '../data/demoBaselines';
 import {
   demoCleaningSteps,
   demoDataPreview,
@@ -20,6 +20,7 @@ import type { VersionEntry, VersionDetail, VersionChangeSummary, VersionComparis
 import type { ExperimentEntry } from '../types/experiment';
 import type { ValidationCheckResult } from '../types/validation';
 import type { EvaluationData } from '../types/evaluation';
+import type { Baseline, NewBaselineFormValues } from '../types/baseline';
 import type {
   CleaningStepConfig,
   BeforeAfterMetric,
@@ -340,13 +341,43 @@ async createExperimentRun(
     parameters: values.parameters,
 
     // Backend requires metrics
-    metrics: 
-  {
+  metrics: {
   accuracy: 0.92,
   precision: 0.91,
   recall: 0.90,
   f1_score: 0.905,
-  },
+
+  auc_roc: 0.94,
+
+  true_positive: 450,
+  false_negative: 30,
+  false_positive: 40,
+  true_negative: 480,
+
+  roc_points: [
+    { fpr: 0.0, tpr: 0.0 },
+    { fpr: 0.1, tpr: 0.55 },
+    { fpr: 0.2, tpr: 0.72 },
+    { fpr: 0.4, tpr: 0.86 },
+    { fpr: 0.6, tpr: 0.94 },
+    { fpr: 1.0, tpr: 1.0 },
+  ],
+
+  per_class_metrics: [
+    {
+      className: 'Class 0',
+      precision: 0.93,
+      recall: 0.90,
+      f1Score: 0.915,
+    },
+    {
+      className: 'Class 1',
+      precision: 0.89,
+      recall: 0.92,
+      f1Score: 0.905,
+    },
+  ],
+},
   });
 
   return {
@@ -379,18 +410,115 @@ async createExperimentRun(
 
     // --- Stage 6: model evaluation (mock) ---
 
-  async getEvaluableExperimentIds(): Promise<string[]> {
-    await delay(150);
-    return EVALUABLE_EXPERIMENT_IDS;
+// --- Stage 6: model evaluation ---
+
+async getEvaluableExperimentIds(): Promise<string[]> {
+  const runs = await fetchProjectRuns(2);
+
+  return runs.map(
+    (run: any) => `EXP-${String(run.id).padStart(3, '0')}`
+  );
+},
+
+async getEvaluationData(
+  experimentId: string
+): Promise<EvaluationData> {
+
+  const runs = await fetchProjectRuns(2);
+
+  const runId = Number(
+    experimentId.replace('EXP-', '')
+  );
+
+  const currentIndex = runs.findIndex(
+    (run: any) => run.id === runId
+  );
+
+  if (currentIndex === -1) {
+    throw new Error(
+      `Experiment ${experimentId} not found`
+    );
+  }
+
+  const run = runs[currentIndex];
+
+  const previousRun =
+    currentIndex < runs.length - 1
+      ? runs[currentIndex + 1]
+      : null;
+
+  const metrics = {
+    accuracy: run.metrics?.accuracy ?? 0,
+    precision: run.metrics?.precision ?? 0,
+    recall: run.metrics?.recall ?? 0,
+    f1Score: run.metrics?.f1_score ?? 0,
+    aucRoc: run.metrics?.auc_roc ?? 0,
+  };
+
+  const previousMetrics = previousRun
+    ? {
+        accuracy: previousRun.metrics?.accuracy ?? 0,
+        precision: previousRun.metrics?.precision ?? 0,
+        recall: previousRun.metrics?.recall ?? 0,
+        f1Score: previousRun.metrics?.f1_score ?? 0,
+        aucRoc: previousRun.metrics?.auc_roc ?? 0,
+      }
+    : null;
+
+  return {
+    experimentId,
+
+    previousExperimentId: previousRun
+      ? `EXP-${String(previousRun.id).padStart(3, '0')}`
+      : null,
+
+    datasetName: run.features?.[0] ?? 'Project Dataset',
+
+    datasetVersion: 'V01',
+
+    model: run.model_name,
+
+    status: 'completed',
+
+    metrics,
+
+    previousMetrics,
+
+    confusionMatrix: {
+      truePositive: run.metrics?.true_positive ?? 0,
+      falseNegative: run.metrics?.false_negative ?? 0,
+      falsePositive: run.metrics?.false_positive ?? 0,
+      trueNegative: run.metrics?.true_negative ?? 0,
+    },
+
+    rocPoints: run.metrics?.roc_points ?? [],
+
+    perClassMetrics:
+      run.metrics?.per_class_metrics ?? [],
+  };
+},
+
+  // --- Stage 7: baselines (mock) ---
+
+  async getBaselines(): Promise<Baseline[]> {
+    await delay(200);
+    return demoBaselines;
   },
 
-  async getEvaluationData(experimentId: string): Promise<EvaluationData> {
+  async createBaseline(values: NewBaselineFormValues, experiments: ExperimentRun[]): Promise<Baseline> {
     await delay(300);
-    const data = demoEvaluationData[experimentId];
-    if (!data) {
-      throw new Error(`no evaluation data for ${experimentId}`);
-    }
-    return data;
+    const sourceExperiment = experiments.find((exp) => exp.id === values.experimentId);
+    const nextNumber = demoBaselines.length + 1;
+    return {
+      id: `BASE-${String(nextNumber).padStart(3, '0')}`,
+      name: values.name,
+      experimentId: values.experimentId,
+      model: sourceExperiment?.model ?? 'unknown',
+      datasetVersion: sourceExperiment?.datasetVersion ?? '—',
+      metricName: 'F1 Score',
+      metricValue: sourceExperiment?.metrics.f1Score ?? 0,
+      createdAt: 'just now',
+    };
   },
 };
 
@@ -445,6 +573,28 @@ export async function createProjectRun(
 
   if (!res.ok) {
     throw new Error('Failed to create ML run');
+  }
+
+  return res.json();
+}
+
+// Delete ML Run
+export async function deleteProjectRun(
+  projectId: number,
+  runId: number
+) {
+  const res = await fetch(
+    `${BASE_URL}/projects/${projectId}/runs/${runId}`,
+    {
+      method: 'DELETE',
+      headers: {
+        accept: 'application/json',
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error('Failed to delete experiment');
   }
 
   return res.json();

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { api } from '../services/api';
+import { api, deleteProjectRun } from '../services/api';
 import type { ExperimentRun, NewExperimentFormValues } from '../types/experimentRun';
 import type { DatasetSummary } from '../types/dataset';
 
@@ -49,18 +49,57 @@ export function useExperiments() {
     setStatusMessage(`${created.id} created. status: running.`);
   }, []);
 
-  return {
-    experiments,
-    datasets,
-    loading,
-    statusMessage,
-    runningExperiment,
-    selectedExperiment,
-    showNewModal,
-    openNewExperimentModal,
-    closeNewExperimentModal,
-    selectExperiment,
-    closeDetails,
-    createExperiment,
-  };
+  const deleteExperiment = useCallback(
+  async (experiment: ExperimentRun) => {
+    try {
+      setStatusMessage(`deleting ${experiment.id}...`);
+
+      // EXP-010 → 10
+      const runId = Number(
+        experiment.id.replace('EXP-', '')
+      );
+
+      // Delete from backend
+      await deleteProjectRun(2, runId);
+
+      // Remove from frontend UI
+      setExperiments((prev) =>
+        prev.filter((exp) => exp.id !== experiment.id)
+      );
+
+      // Close details if the deleted experiment is selected
+      setSelectedExperiment((current) =>
+        current?.id === experiment.id
+          ? null
+          : current
+      );
+
+      setStatusMessage(
+        `${experiment.id} deleted successfully.`
+      );
+    } catch (error) {
+      console.error(error);
+
+      setStatusMessage(
+        `failed to delete ${experiment.id}.`
+      );
+    }
+  },
+  []
+);
+return {
+  experiments,
+  datasets,
+  loading,
+  statusMessage,
+  runningExperiment,
+  selectedExperiment,
+  showNewModal,
+  openNewExperimentModal,
+  closeNewExperimentModal,
+  selectExperiment,
+  closeDetails,
+  createExperiment,
+  deleteExperiment,
+};
 }
