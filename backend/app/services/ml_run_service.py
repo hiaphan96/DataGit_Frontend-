@@ -62,3 +62,37 @@ class MLRunService:
             )
             .all()
         )
+
+    # ============================================================
+    # GET SINGLE ML RUN
+    # ============================================================
+
+    @staticmethod
+    def get_run(
+        db: Session,
+        project_id: int,
+        run_id: int,
+    ) -> MLRun | None:
+
+        return (
+            db.query(MLRun)
+            .filter(
+                MLRun.id == run_id,
+                MLRun.project_id == project_id,
+            )
+            .first()
+        )
+
+    # ============================================================
+    # DELETE ML RUN
+    # ============================================================
+
+    @staticmethod
+    def delete_run(
+        db: Session,
+        run: MLRun,
+    ) -> None:
+
+        db.delete(run)
+
+        db.commit()    

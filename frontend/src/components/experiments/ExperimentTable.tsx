@@ -1,7 +1,15 @@
 import StatusBadge from '../common/StatusBadge';
-import { MODEL_LABELS, formatMetric, type ExperimentRun, type ExperimentStatus } from '../../types/experimentRun';
+import {
+  MODEL_LABELS,
+  formatMetric,
+  type ExperimentRun,
+  type ExperimentStatus,
+} from '../../types/experimentRun';
 
-const STATUS_TONE: Record<ExperimentStatus, 'positive' | 'neutral' | 'negative'> = {
+const STATUS_TONE: Record<
+  ExperimentStatus,
+  'positive' | 'neutral' | 'negative'
+> = {
   running: 'neutral',
   completed: 'positive',
   failed: 'negative',
@@ -16,12 +24,18 @@ const STATUS_LABEL: Record<ExperimentStatus, string> = {
 interface ExperimentTableProps {
   experiments: ExperimentRun[];
   onSelect: (experiment: ExperimentRun) => void;
+  onDelete: (experiment: ExperimentRun) => void;
 }
 
-export function ExperimentTable({ experiments, onSelect }: ExperimentTableProps) {
+export function ExperimentTable({
+  experiments,
+  onSelect,
+  onDelete,
+}: ExperimentTableProps) {
   return (
     <div className="dataset-table-section">
       <p className="section-label">experiments</p>
+
       <div className="dataset-table-scroll">
         <table className="dataset-table">
           <thead>
@@ -32,8 +46,10 @@ export function ExperimentTable({ experiments, onSelect }: ExperimentTableProps)
               <th>F1 SCORE</th>
               <th>STATUS</th>
               <th>CREATED</th>
+              <th>ACTION</th>
             </tr>
           </thead>
+
           <tbody>
             {experiments.map((exp) => (
               <tr
@@ -41,14 +57,45 @@ export function ExperimentTable({ experiments, onSelect }: ExperimentTableProps)
                 className="experiment-table__row"
                 onClick={() => onSelect(exp)}
               >
-                <td className="experiment-table__id">{exp.id}</td>
-                <td>{MODEL_LABELS[exp.model]}</td>
-                <td>{exp.datasetVersion}</td>
-                <td>{formatMetric(exp.metrics.f1Score)}</td>
-                <td>
-                  <StatusBadge tone={STATUS_TONE[exp.status]} label={STATUS_LABEL[exp.status]} />
+                <td className="experiment-table__id">
+                  {exp.id}
                 </td>
-                <td>{exp.createdAt}</td>
+
+                <td>
+                  {MODEL_LABELS[exp.model]}
+                </td>
+
+                <td>
+                  {exp.datasetVersion}
+                </td>
+
+                <td>
+                  {formatMetric(exp.metrics.f1Score)}
+                </td>
+
+                <td>
+                  <StatusBadge
+                    tone={STATUS_TONE[exp.status]}
+                    label={STATUS_LABEL[exp.status]}
+                  />
+                </td>
+
+                <td>
+                  {exp.createdAt}
+                </td>
+
+                <td>
+                  <button
+                    type="button"
+                    className="experiment-table__delete"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onDelete(exp);
+                    }}
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
