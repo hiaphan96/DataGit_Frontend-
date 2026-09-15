@@ -71,3 +71,4 @@ export interface ProjectVersionSummary {
   createdAt: string;
   accuracy: number | null;
 }
+

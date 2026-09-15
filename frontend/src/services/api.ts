@@ -6,6 +6,7 @@ import { demoExperiments } from '../data/demoExperiments';
 import { demoDatasetColumns } from '../data/demoDatasetColumns';
 import { demoVersionDetails, demoChangeSummaries, demoComparisonResults } from '../data/demoVersionDetails';
 import { demoBaselines } from '../data/demoBaselines';
+import type { VersionComparisonResponse } from '../types/compare';
 import {
   demoCleaningSteps,
   demoDataPreview,
@@ -27,6 +28,11 @@ import type { ExperimentEntry } from '../types/experiment';
 import type { ValidationCheckResult } from '../types/validation';
 import type { EvaluationData } from '../types/evaluation';
 import type { Baseline, NewBaselineFormValues } from '../types/baseline';
+import type {
+  ProjectResponse,
+  VersionResponse,
+  MLRunResponse,
+} from '../types/report';
 import type {
   CleaningStepConfig,
   BeforeAfterMetric,
@@ -571,6 +577,162 @@ async getEvaluationData(
       createdAt: 'just now',
     };
   },
+
+    // --- Dataset Preparation (real backend) ---
+
+  async fetchPreparationOperations(): Promise<unknown> {
+    const res = await fetch(`${BASE_URL}/dataset-preparations/operations`);
+    if (!res.ok) throw new Error('Failed to load preparation operations');
+    return res.json();
+  },
+
+  async uploadPreparationDataset(file: File): Promise<unknown> {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(`${BASE_URL}/dataset-preparations/upload`, {
+      method: 'POST',
+      body: form,
+    });
+    if (!res.ok) throw new Error('Failed to upload dataset');
+    return res.json();
+  },
+
+  async fetchDatasetProfile(filename: string): Promise<unknown> {
+    const res = await fetch(
+      `${BASE_URL}/dataset-preparations/profile/${encodeURIComponent(filename)}`
+    );
+    if (!res.ok) throw new Error('Failed to profile dataset');
+    return res.json();
+  },
+
+  async selectPreparationOperations(payload: { filename: string; operations?: string[] }): Promise<unknown> {
+    const res = await fetch(`${BASE_URL}/dataset-preparations/select`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to save operation selection');
+    return res.json();
+  },
+
+  async configurePreparation(payload: { filename: string; operations: Record<string, unknown>[] }): Promise<unknown> {
+    const res = await fetch(`${BASE_URL}/dataset-preparations/configure`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to save configuration');
+    return res.json();
+  },
+
+  async validatePreparation(payload: { filename: string; operations: Record<string, unknown>[] }): Promise<unknown> {
+    const res = await fetch(`${BASE_URL}/dataset-preparations/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Configuration validation failed');
+    return res.json();
+  },
+
+  async processDatasetPreparation(payload: { filename: string; operations: Record<string, unknown>[] }): Promise<unknown> {
+    const res = await fetch(`${BASE_URL}/dataset-preparations/process`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Dataset preparation failed');
+    return res.json();
+  },
+
+  async generatePreparationReport(payload: { filename: string; output_file: string; operations: Record<string, unknown>[] }): Promise<unknown> {
+    const res = await fetch(`${BASE_URL}/dataset-preparations/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to generate report');
+    return res.json();
+  },
+
+  async fetchPreparedDatasets(): Promise<{ files: Record<string, unknown> }> {
+    const res = await fetch(`${BASE_URL}/dataset-preparations/prepared`);
+    if (!res.ok) throw new Error('Failed to load prepared datasets');
+    return res.json();
+  },
+
+  async fetchPreparationReports(): Promise<{ files: Record<string, unknown> }> {
+    const res = await fetch(`${BASE_URL}/dataset-preparations/reports`);
+    if (!res.ok) throw new Error('Failed to load reports');
+    return res.json();
+  },
+
+  async finalizeVersion(projectId: number, description: string): Promise<unknown> {
+    const res = await fetch(
+      `${BASE_URL}/projects/${projectId}/versions/finalize`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description }),
+      }
+    );
+    if (!res.ok) throw new Error('Failed to finalize version');
+    return res.json();
+  },
+
+
+    // --- Reports (project / version / mlrun) ---
+
+  async fetchReportProjects(): Promise<ProjectResponse[]> {
+    const res = await fetch(`${BASE_URL}/projects`);
+    if (!res.ok) throw new Error('Failed to load projects');
+    const body = await res.json();
+    // Backend returns { value: [...] } — unwrap.
+    return Array.isArray(body) ? body : (body?.value ?? []);
+  },
+
+  async fetchReportProject(projectId: number): Promise<ProjectResponse> {
+    const res = await fetch(`${BASE_URL}/projects/${projectId}`);
+    if (!res.ok) throw new Error('Failed to load project');
+    return res.json();
+  },
+
+  async fetchReportVersions(projectId: number): Promise<VersionResponse[]> {
+    const res = await fetch(`${BASE_URL}/projects/${projectId}/versions`);
+    if (!res.ok) throw new Error('Failed to load versions');
+    const body = await res.json();
+    // Backend returns { value: [...] } — unwrap.
+    return Array.isArray(body) ? body : (body?.value ?? []);
+  },
+
+  async fetchReportVersion(
+    projectId: number,
+    versionId: number,
+  ): Promise<VersionResponse> {
+    const res = await fetch(`${BASE_URL}/projects/${projectId}/versions/${versionId}`);
+    if (!res.ok) throw new Error('Failed to load version');
+    return res.json();
+  },
+
+  async fetchReportMlRuns(projectId: number): Promise<MLRunResponse[]> {
+    const res = await fetch(`${BASE_URL}/projects/${projectId}/runs`);
+    if (!res.ok) throw new Error('Failed to load ml runs');
+    const body = await res.json();
+    return Array.isArray(body) ? body : (body?.value ?? []);
+  },
+
+    // --- Compare (version comparison) ---
+
+  async fetchVersionComparison(
+    projectId: number,
+    versionA: number,
+    versionB: number,
+  ): Promise<VersionComparisonResponse> {
+    const url = `${BASE_URL}/projects/${projectId}/versions/compare?version_1=${versionA}&version_2=${versionB}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to load comparison');
+    return res.json();
+  },
 };
 
 
@@ -726,8 +888,163 @@ export async function fetchRunComparison(projectId: number, run1Id: number, run2
   );
   if (!res.ok) throw new Error('Failed to compute run comparison');
   return res.json();
-}
+} 
 
 export function formatMetric(value: number | null): string {
   return value == null ? '—' : value.toFixed(3);
 }
+// ---------- Dataset Preparation (real backend) ----------
+
+import type {
+  PreparationOperationsResponse,
+  PreparationSelectionRequest,
+  PreparationSelectionResponse,
+  PreparationConfigurationRequest,
+  PreparationConfigurationResponse,
+  PreparationProcessRequest,
+  PreparationProceedRequest,
+  PreparationReportRequest,
+  PreparedDatasetsResponse,
+  PreparationReportsResponse,
+} from '../types/preparation';
+
+export async function fetchPreparationOperations(): Promise<PreparationOperationsResponse> {
+  const res = await fetch(`${BASE_URL}/dataset-preparations/operations`);
+  if (!res.ok) throw new Error('Failed to load preparation operations');
+  return res.json();
+}
+
+export async function uploadPreparationDataset(file: File): Promise<unknown> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch(`${BASE_URL}/dataset-preparations/upload`, {
+    method: 'POST',
+    body: form,
+  });
+  if (!res.ok) throw new Error('Failed to upload dataset');
+  return res.json();
+}
+
+export async function fetchDatasetProfile(filename: string): Promise<unknown> {
+  const res = await fetch(
+    `${BASE_URL}/dataset-preparations/profile/${encodeURIComponent(filename)}`
+  );
+  if (!res.ok) throw new Error('Failed to profile dataset');
+  return res.json();
+}
+
+export async function selectPreparationOperations(
+  payload: PreparationSelectionRequest
+): Promise<PreparationSelectionResponse> {
+  const res = await fetch(`${BASE_URL}/dataset-preparations/select`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error('Failed to save operation selection');
+  return res.json();
+}
+
+export async function configurePreparation(
+  payload: PreparationConfigurationRequest
+): Promise<PreparationConfigurationResponse> {
+  const res = await fetch(`${BASE_URL}/dataset-preparations/configure`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error('Failed to save configuration');
+  return res.json();
+}
+
+export async function validatePreparation(
+  payload: PreparationConfigurationRequest
+): Promise<unknown> {
+  const res = await fetch(`${BASE_URL}/dataset-preparations/validate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error('Configuration validation failed');
+  return res.json();
+}
+
+export async function proceedPreparation(
+  payload: PreparationProceedRequest
+): Promise<unknown> {
+  const res = await fetch(`${BASE_URL}/dataset-preparations/proceed`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error('Failed to proceed with preparation');
+  return res.json();
+}
+
+export async function processDatasetPreparation(
+  payload: PreparationProcessRequest
+): Promise<unknown> {
+  const res = await fetch(`${BASE_URL}/dataset-preparations/process`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error('Dataset preparation failed');
+  return res.json();
+}
+
+export async function generatePreparationReport(
+  payload: PreparationReportRequest
+): Promise<unknown> {
+  const res = await fetch(`${BASE_URL}/dataset-preparations/report`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error('Failed to generate report');
+  return res.json();
+}
+
+export async function fetchPreparedDatasets(): Promise<PreparedDatasetsResponse> {
+  const res = await fetch(`${BASE_URL}/dataset-preparations/prepared`);
+  if (!res.ok) throw new Error('Failed to load prepared datasets');
+  return res.json();
+}
+
+export async function fetchPreparationReports(): Promise<PreparationReportsResponse> {
+  const res = await fetch(`${BASE_URL}/dataset-preparations/reports`);
+  if (!res.ok) throw new Error('Failed to load reports');
+  return res.json();
+}
+
+export function downloadPreparedDataset(filename: string): void {
+  window.open(
+    `${BASE_URL}/dataset-preparations/prepared/${encodeURIComponent(filename)}`,
+    '_blank'
+  );
+}
+
+export function downloadPreparationReport(filename: string): void {
+  window.open(
+    `${BASE_URL}/dataset-preparations/reports/${encodeURIComponent(filename)}`,
+    '_blank'
+  );
+}
+
+export async function finalizeVersion(
+  projectId: number,
+  description: string
+): Promise<unknown> {
+  const res = await fetch(
+    `${BASE_URL}/projects/${projectId}/versions/finalize`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description }),
+    }
+  );
+  if (!res.ok) throw new Error('Failed to finalize version');
+  return res.json();
+}
+
+

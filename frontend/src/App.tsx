@@ -4,6 +4,8 @@ import './App.css';
 import './styles/dataset.css';
 import './styles/version.css';
 import './styles/preprocessing.css';
+import './styles/report.css';   
+import './styles/VersionCompare.css';
 import './styles/experiments.css';
 import './styles/evaluation.css';
 import './styles/baselines.css';

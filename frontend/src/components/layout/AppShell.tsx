@@ -7,6 +7,8 @@ import Home from '../../pages/Home';
 import Datasets from '../../pages/Datasets';
 import DatasetPreparation from '../../pages/DatasetPreparation';
 import Evaluation from '../../pages/Evaluation';
+import Report from '../../pages/Report';
+import VersionCompare from '../../pages/VersionCompare';
 import Baselines from '../../pages/Baselines';
 import ProjectsList from '../../pages/ProjectsList';
 import ProjectWorkspace from '../../pages/ProjectWorkspace';
@@ -22,12 +24,12 @@ const PLACEHOLDER_LABELS: Record<
     | 'dataset-preparation'
     | 'evaluation'
     | 'baselines'
+    | 'reports'
+    | 'compare'
   >,
   string
 > = {
   projects: 'PROJECTS',
-  reports: 'REPORTS',
-  compare: 'COMPARE',
   settings: 'SETTINGS',
   upgrade: 'UPGRADE',
 };
@@ -87,6 +89,14 @@ export function AppShell() {
           ) : activeSection === 'dataset-preparation' ? (
 
             <DatasetPreparation />
+
+          ) : activeSection === 'reports' ? (
+
+            <Report />
+
+            ) : activeSection === 'compare' ? (
+
+            <VersionCompare />
 
           ) : activeSection === 'evaluation' ? (
 
