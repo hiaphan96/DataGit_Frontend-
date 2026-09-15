@@ -54,3 +54,20 @@ export interface VersionComparisonResult {
   schemaNote: string;
   overallStatus: ComparisonOverallStatus;
 }
+
+// --- Project workspace / version carousel (real backend-backed) types ---
+// Mirrors app.schemas.version.VersionResponse, plus an optional accuracy
+// resolved client-side from the linked ML Run (GET /projects/{id}/runs),
+// never fabricated. `accuracy` is null whenever no run is linked or the
+// run has no accuracy metric.
+
+export interface ProjectVersionSummary {
+  id: string;
+  projectId: string;
+  versionNumber: number;
+  gitCommit: string;
+  description: string | null;
+  mlRunId: string | null;
+  createdAt: string;
+  accuracy: number | null;
+}

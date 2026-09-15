@@ -13,10 +13,16 @@ import {
   demoWarnings,
   demoAiSuggestion,
 } from '../data/demoPreprocessing';
-import type { Project } from '../types/project';
+import type { Project, ProjectSummary, NewProjectInput } from '../types/project';
 import type { DatasetSummary, DatasetFileKind, DatasetUploadForm } from '../types/dataset';
 import type { ActivityItem, MetricsSummary } from '../types/dashboard';
-import type { VersionEntry, VersionDetail, VersionChangeSummary, VersionComparisonResult } from '../types/version';
+import type {
+  VersionEntry,
+  VersionDetail,
+  VersionChangeSummary,
+  VersionComparisonResult,
+  ProjectVersionSummary,
+} from '../types/version';
 import type { ExperimentEntry } from '../types/experiment';
 import type { ValidationCheckResult } from '../types/validation';
 import type { EvaluationData } from '../types/evaluation';
@@ -85,6 +91,51 @@ async getProject(): Promise<Project> {
     lastRunLabel: 'No runs yet',
   };
 },
+
+  // --- Projects list / workspace (real backend data) ---
+  // Backs the Projects grid and the per-project workspace/version carousel.
+  // No hardcoded project id anywhere in this section.
+
+  async getProjectsList(): Promise<ProjectSummary[]> {
+    const projects = await fetchProjects();
+    return (projects as RawProject[]).map(mapProject);
+  },
+
+  async getProjectSummary(projectId: string): Promise<ProjectSummary> {
+    const project = await fetchProjectById(projectId);
+    return mapProject(project as RawProject);
+  },
+
+  async createNewProject(input: NewProjectInput): Promise<ProjectSummary> {
+    const created = await createProject(input);
+    return mapProject(created as RawProject);
+  },
+
+  async getProjectVersionsList(projectId: string): Promise<ProjectVersionSummary[]> {
+    const [versions, runs] = await Promise.all([
+      fetchProjectVersions(projectId),
+      fetchProjectRuns(Number(projectId)).catch(() => []),
+    ]);
+
+    const runsById = new Map<number, any>((runs as any[]).map((run) => [run.id, run]));
+
+    return (versions as RawVersion[]).map((v) => {
+      const run = v.ml_run_id != null ? runsById.get(v.ml_run_id) : undefined;
+      const accuracy = typeof run?.metrics?.accuracy === 'number' ? run.metrics.accuracy : null;
+
+      return {
+        id: String(v.id),
+        projectId: String(v.project_id),
+        versionNumber: v.version_number,
+        gitCommit: v.git_commit,
+        description: v.description,
+        mlRunId: v.ml_run_id != null ? String(v.ml_run_id) : null,
+        createdAt: v.created_at,
+        accuracy,
+      };
+    });
+  },
+
   getDatasets(): Promise<DatasetSummary[]> {
     return Promise.resolve(demoDatasets);
   },
@@ -538,6 +589,74 @@ export async function fetchProjects() {
   const res = await fetch(`${BASE_URL}/projects`);
   if (!res.ok) throw new Error('Failed to fetch projects');
   return res.json();
+}
+
+export async function fetchProjectById(projectId: string | number) {
+  const res = await fetch(`${BASE_URL}/projects/${projectId}`);
+  if (!res.ok) throw new Error('Failed to fetch project');
+  return res.json();
+}
+
+export async function createProject(input: { name: string; path: string; description?: string }) {
+  const res = await fetch(`${BASE_URL}/projects`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      accept: 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    let detail = 'Failed to create project';
+    try {
+      const body = await res.json();
+      detail = body?.detail ?? detail;
+    } catch {
+      // response wasn't JSON — keep the generic message
+    }
+    throw new Error(detail);
+  }
+
+  return res.json();
+}
+
+// Project Versions
+export async function fetchProjectVersions(projectId: string | number) {
+  const res = await fetch(`${BASE_URL}/projects/${projectId}/versions`);
+  if (!res.ok) throw new Error('Failed to fetch project versions');
+  return res.json();
+}
+
+interface RawProject {
+  id: number;
+  name: string;
+  path: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface RawVersion {
+  id: number;
+  project_id: number;
+  version_number: number;
+  git_commit: string;
+  dvc_state: Record<string, unknown> | null;
+  description: string | null;
+  ml_run_id: number | null;
+  created_at: string;
+}
+
+function mapProject(project: RawProject): ProjectSummary {
+  return {
+    id: String(project.id),
+    name: project.name,
+    path: project.path,
+    description: project.description,
+    createdAt: project.created_at,
+    updatedAt: project.updated_at,
+  };
 }
 
 // Project ML Runs

@@ -7,6 +7,8 @@ import './styles/preprocessing.css';
 import './styles/experiments.css';
 import './styles/evaluation.css';
 import './styles/baselines.css';
+import './styles/projects.css';
+import './styles/version-carousel.css';
 
 function App() {
   return <AppShell />;

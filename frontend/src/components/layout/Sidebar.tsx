@@ -1,15 +1,12 @@
 export type NavSection =
   | 'home'
   | 'datasets'
-  | 'versions'
+  | 'projects'
   | 'dataset-preparation'
-  | 'experiments'
   | 'evaluation'
   | 'baselines'
   | 'reports'
   | 'compare'
-  | 'copilot'
-  | 'lineage'
   | 'settings'
   | 'upgrade';
 
@@ -28,14 +25,13 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'DATA',
     items: [
       { id: 'datasets', label: 'DATASETS' },
-      { id: 'versions', label: 'VERSIONS' },
+      { id: 'projects', label: 'PROJECTS' },
       { id: 'dataset-preparation', label: 'DATASET PREPARATION' },
     ],
   },
   {
     label: 'EXPERIMENTS',
     items: [
-      { id: 'experiments', label: 'EXPERIMENTS' },
       { id: 'evaluation', label: 'EVALUATION' },
       { id: 'baselines', label: 'BASELINES' },
     ],
@@ -45,8 +41,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: 'reports', label: 'REPORTS' },
       { id: 'compare', label: 'COMPARE' },
-      { id: 'copilot', label: 'COPILOT' },
-      { id: 'lineage', label: 'LINEAGE' },
     ],
   },
   {
@@ -71,7 +65,9 @@ export function Sidebar({ active, onSelect }: SidebarProps) {
           <li>
             <button
               type="button"
-              className={`sidebar__item ${active === 'home' ? 'sidebar__item--active' : ''}`}
+              className={`sidebar__item ${
+                active === 'home' ? 'sidebar__item--active' : ''
+              }`}
               onClick={() => onSelect('home')}
             >
               <span className="sidebar__caret">&gt;</span>
@@ -83,12 +79,17 @@ export function Sidebar({ active, onSelect }: SidebarProps) {
         {NAV_GROUPS.map((group) => (
           <div className="sidebar__group" key={group.label}>
             <p className="sidebar__group-label">{group.label}</p>
+
             <ul className="sidebar__list">
               {group.items.map((item) => (
                 <li key={item.id}>
                   <button
                     type="button"
-                    className={`sidebar__item ${active === item.id ? 'sidebar__item--active' : ''}`}
+                    className={`sidebar__item ${
+                      active === item.id
+                        ? 'sidebar__item--active'
+                        : ''
+                    }`}
                     onClick={() => onSelect(item.id)}
                   >
                     <span className="sidebar__caret">&gt;</span>
